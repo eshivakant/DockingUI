@@ -8,7 +8,8 @@
     xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
     x:Class="UIComposition.Shell.Views.ShellView"
     xmlns:utils ="clr-namespace:UIComposition.Shell.TemplateSelector"
-        dx:ThemeManager.ThemeName="MetropolisDark" Height="Auto" Width="Auto"
+    xmlns:local="clr-namespace:UIComposition.Shell.ViewModels"
+    dx:ThemeManager.ThemeName="MetropolisDark" Height="Auto" Width="Auto"
         Title="ShellView"
     x:Name="DxRibbonWindow" WindowStartupLocation="CenterScreen"
                        
@@ -86,21 +87,33 @@
 
 
     <ribbon:DXRibbonWindow.Resources>
-        <utils:ModuleTemplateSelector x:Key="ModuleTemplateSelector"/>
 
-        <Style  x:Key="ModuleTemplateSelectorTemplates" TargetType="{x:Type dxd:DockLayoutManager}">
-            <Setter Property="ItemTemplateSelector" Value="{StaticResource ModuleTemplateSelector}"/>
-            <Setter Property="utils:ModuleTemplateSelector.Templates">
-                <Setter.Value>
-                    <utils:TemplateCollection>
-                        <utils:Template DataTemplate="{StaticResource DealTemplate}" Value="{x:Type Merges:DealMerge}"></utils:Template>
-                        <utils:Template DataTemplate="{StaticResource ShipmentTemplate}"  Value="{x:Type Merges:ShipmentMerge}"></utils:Template>
-                    </utils:TemplateCollection>
-                </Setter.Value>
-            </Setter>
+
+        <DataTemplate DataType="{x:Type local:DocumentViewModel}">
+            <Border Background="#FFBEC8D9">
+                <ContentPresenter Content="{Binding Content}" />
+            </Border>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:PanelViewModel}">
+            <Border Background="#FFDADFE4">
+                <ContentPresenter Content="{Binding Content}" />
+            </Border>
+        </DataTemplate>
+        <Style TargetType="dxd:LayoutPanel">
+            <Setter Property="Caption" Value="{Binding DisplayName}" />
+        </Style>
+        <Style TargetType="dxd:DocumentPanel">
+            <Setter Property="Caption" Value="{Binding DisplayName}" />
         </Style>
 
-        <dx:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"></dx:BoolToVisibilityConverter>
+        <DataTemplate DataType="{x:Type local:DealMergeViewModel}">
+            <Merges:DealMerge />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:ShipmentMergeViewModel}">
+            <Merges:ShipmentMerge />
+        </DataTemplate>
+
     </ribbon:DXRibbonWindow.Resources>
 
     <DockPanel>
@@ -135,12 +148,14 @@
         </ribbon:RibbonControl>
         <ribbon:RibbonStatusBarControl DockPanel.Dock="Bottom"/>
         <Grid>
-            <dxd:DockLayoutManager FloatingMode="Desktop" ItemsSource="{Binding Path=Modules}" Style="{StaticResource ModuleTemplateSelectorTemplates}">
+            <dxd:DockLayoutManager ItemsSource="{Binding Workspaces}" FloatingMode="Desktop" >
                 <dxd:LayoutGroup>
-                    <dxd:LayoutGroup Name="PanelHost" DestroyOnClosingChildren="False"/>
-                    <dxd:DocumentGroup Name="DocumentHost" DestroyOnClosingChildren="False" />
+                    <dxd:LayoutGroup x:Name="PanelHost" DestroyOnClosingChildren="False"/>
+                    <dxd:DocumentGroup x:Name="DocumentHost" DestroyOnClosingChildren="False" />
                 </dxd:LayoutGroup>
             </dxd:DockLayoutManager>
+            
+            
         </Grid>
     </DockPanel>
 
