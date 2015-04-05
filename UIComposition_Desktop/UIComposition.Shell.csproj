@@ -110,13 +110,15 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="GlobalVars.cs" />
     <Compile Include="Merges\DealMerge.xaml.cs">
       <DependentUpon>DealMerge.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Merges\IModuleMerge.cs" />
+    <Compile Include="Merges\MergeViewModels.cs" />
     <Compile Include="Merges\ShipmentMerge.xaml.cs">
       <DependentUpon>ShipmentMerge.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Merges\ViewMergeFactory.cs" />
     <Compile Include="TemplateSelector\ModuleTemplateSelector.cs" />
     <Compile Include="Utility\Constants.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />

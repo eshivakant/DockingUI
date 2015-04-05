@@ -18,7 +18,7 @@ namespace UIComposition.Shell.Merges
     /// <summary>
     /// Interaction logic for DealMerge.xaml
     /// </summary>
-    public partial class DealMerge : UserControl, IModuleMerge
+    public partial class DealMerge : UserControl
     {
         public DealMerge()
         {

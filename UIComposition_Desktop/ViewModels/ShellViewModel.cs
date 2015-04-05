@@ -2,24 +2,27 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using DevExpress.Xpf.Docking;
 using Microsoft.Practices.Prism.Commands;
+using Microsoft.Practices.Unity;
 using UIComposition.Shell.Merges;
 
 namespace UIComposition.Shell.ViewModels
 {
     public class ShellViewModel : INotifyPropertyChanged
     {
+        private readonly IUnityContainer _unityContainer;
 
-        public ShellViewModel()
+        public ShellViewModel(IUnityContainer unityContainer)
         {
+            _unityContainer = unityContainer;
             // Initialize this ViewModel's commands.
             this.ExitCommand = new DelegateCommand<object>(this.AppExit, this.CanAppExit);
 
-            AddDocument("Deal");
-            AddDocument("Shipment");
+            GlobalVars.LoadedModules.ForEach(AddDocument);
         }
 
 
@@ -70,81 +73,54 @@ namespace UIComposition.Shell.ViewModels
             }
         }
 
-        ICommand addPanelCommand;
+        ICommand _addPanelCommand;
         public ICommand AddPanelCommand
         {
             get
             {
-                if (addPanelCommand == null)
+                if (_addPanelCommand == null)
                 {
-                    addPanelCommand = new DelegateCommand(AddPanel);
+                    _addPanelCommand = new DelegateCommand(AddPanel);
                 }
-                return addPanelCommand;
+                return _addPanelCommand;
             }
         }
 
         void AddPanel()
         {
-            PanelViewModel panelViewModel1 = new PanelViewModel();
-            panelViewModel1.Content = "Panel View Model";
-            panelViewModel1.DisplayName = "Panel View Model";
+            var panelViewModel1 = new PanelViewModel
+            {
+                Content = "Panel View Model", DisplayName = "Panel View Model"
+            };
+
             this.Workspaces.Add(panelViewModel1);
         }
 
 
-        ICommand addDocumentCommand;
+        ICommand _addDocumentCommand;
         public ICommand AddDocumentCommand
         {
             get
             {
-                if (addDocumentCommand == null)
+                if (_addDocumentCommand == null)
                 {
-                    addDocumentCommand = new DelegateCommand(AddDocument);
+                    _addDocumentCommand = new DelegateCommand(AddDocument);
                 }
-                return addDocumentCommand;
+                return _addDocumentCommand;
             }
         }
 
         void AddDocument()
         {
-            var documentViewModel1 = new DocumentViewModel();
-            documentViewModel1.Content = new DealMergeViewModel();
-            documentViewModel1.DisplayName = "Deals";
-            this.Workspaces.Add(documentViewModel1);
+           
         }
 
         void AddDocument(string name)
         {
-            var documentViewModel1 = new DocumentViewModel();
-
-            switch (name)
-            {
-                case "Deal":
-                    documentViewModel1.Content = new DealMergeViewModel();
-                    documentViewModel1.DisplayName = name;
-                    break;
-                case "Shipment":
-                    documentViewModel1.Content = new ShipmentMergeViewModel();
-                    documentViewModel1.DisplayName = name;
-                    break;
-            }
-
-
-            this.Workspaces.Add(documentViewModel1);
+            var factory = _unityContainer.Resolve<ViewMergeFactory>();
+            this.Workspaces.Add(factory.GetDocumentViewModel(name));
         }
-        
-        
     }
-
-    public class DealMergeViewModel
-    {
-
-    }
-    public class ShipmentMergeViewModel
-    {
-
-    }
-
 
     public class PanelViewModel : DependencyObject
     {

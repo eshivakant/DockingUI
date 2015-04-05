@@ -18,7 +18,7 @@ namespace UIComposition.Shell.Merges
     /// <summary>
     /// Interaction logic for ShipmentMerge.xaml
     /// </summary>
-    public partial class ShipmentMerge : UserControl, IModuleMerge
+    public partial class ShipmentMerge : UserControl
     {
         public ShipmentMerge()
         {

@@ -106,11 +106,11 @@
             <Setter Property="Caption" Value="{Binding DisplayName}" />
         </Style>
 
-        <DataTemplate DataType="{x:Type local:DealMergeViewModel}">
+        <DataTemplate DataType="{x:Type Merges:DealMergeViewModel}">
             <Merges:DealMerge />
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type local:ShipmentMergeViewModel}">
+        <DataTemplate DataType="{x:Type Merges:ShipmentMergeViewModel}">
             <Merges:ShipmentMerge />
         </DataTemplate>
 
