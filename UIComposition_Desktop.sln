@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DealModule", "DealModule\De
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShipmentModule", "ShipmentModule\ShipmentModule.csproj", "{50F8B5DD-E4E3-4AF9-A4E5-567B58A46182}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXLauncher", "DXLauncher\DXLauncher.csproj", "{08203E73-749F-4163-B776-142894BDE8E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{50F8B5DD-E4E3-4AF9-A4E5-567B58A46182}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50F8B5DD-E4E3-4AF9-A4E5-567B58A46182}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50F8B5DD-E4E3-4AF9-A4E5-567B58A46182}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08203E73-749F-4163-B776-142894BDE8E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08203E73-749F-4163-B776-142894BDE8E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08203E73-749F-4163-B776-142894BDE8E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08203E73-749F-4163-B776-142894BDE8E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

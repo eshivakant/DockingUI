@@ -104,7 +104,7 @@ namespace UIComposition.Shell.ViewModels
             {
                 if (_addDocumentCommand == null)
                 {
-                    _addDocumentCommand = new DelegateCommand(AddDocument);
+                    _addDocumentCommand = new DelegateCommand<string>(AddDocument);
                 }
                 return _addDocumentCommand;
             }
@@ -117,6 +117,9 @@ namespace UIComposition.Shell.ViewModels
 
         void AddDocument(string name)
         {
+            if(Workspaces.Any(w=>w.DisplayName==name)) return;
+            
+
             var factory = _unityContainer.Resolve<ViewMergeFactory>();
             this.Workspaces.Add(factory.GetDocumentViewModel(name));
         }

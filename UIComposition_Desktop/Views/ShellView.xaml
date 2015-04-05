@@ -120,16 +120,19 @@
         <ribbon:RibbonControl DockPanel.Dock="Top" RibbonStyle="Office2010">
             <ribbon:RibbonControl.ApplicationMenu>
                 <ribbon:BackstageViewControl>
-                    <ribbon:BackstageTabItem Content="Last documents">
+                   
+                    <ribbon:BackstageTabItem Content="Load Modules">
                         <ribbon:BackstageTabItem.ControlPane>
-                            <Grid/>
+                            <Grid>
+                                <StackPanel Orientation="Vertical">
+                                    <Button Content="Add Deal Module" Command="{Binding AddDocumentCommand}" CommandParameter="Deal"></Button>
+                                    <Button Content="Add Shipment Module" Command="{Binding AddDocumentCommand}" CommandParameter="Shipment"></Button>
+                                </StackPanel>
+                            </Grid>
                         </ribbon:BackstageTabItem.ControlPane>
                     </ribbon:BackstageTabItem>
-                    <ribbon:BackstageTabItem Content="Properties">
-                        <ribbon:BackstageTabItem.ControlPane>
-                            <Grid/>
-                        </ribbon:BackstageTabItem.ControlPane>
-                    </ribbon:BackstageTabItem>
+                    <ribbon:BackstageButtonItem Content="Add Deal Module" Command="{Binding AddDocumentCommand}" CommandParameter="Deal"></ribbon:BackstageButtonItem>
+                    <ribbon:BackstageButtonItem Content="Add Shipment Module" Command="{Binding AddDocumentCommand}" CommandParameter="Shipment"></ribbon:BackstageButtonItem>
                     <ribbon:BackstageButtonItem Content="Close" Glyph="{dx:DXImage Image=Close_32x32.png}"/>
                 </ribbon:BackstageViewControl>
             </ribbon:RibbonControl.ApplicationMenu>

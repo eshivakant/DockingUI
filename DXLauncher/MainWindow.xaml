@@ -1,0 +1,46 @@
+﻿<dx:DXWindow xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol" 
+    x:Class="DXLauncher.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:DXLauncher"
+    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+    Title="DXApplication" Height="700" Width="1100"
+    SnapsToDevicePixels="True" UseLayoutRounding="True"
+    dx:ThemeManager.ThemeName="MetropolisDark" WindowStartupLocation="CenterScreen"
+    >
+    <Window.Resources>
+
+    </Window.Resources>
+    <Grid>
+        <dxlc:TileLayoutControl Background="{x:Null}" Name="tileLayoutControl1">
+            <dxlc:Tile Header="Manage OWB Deals" Name="tile1" Command="{Binding LaunchDeals}">
+                <TextBlock FontSize="100" VerticalAlignment="Center" HorizontalAlignment="Center">Deals</TextBlock>
+            </dxlc:Tile>
+            <dxlc:Tile Header="Research" Name="tile2" Size="Small" Background="#FFC14AAF">
+                <Image Name="image2" Stretch="None" Source="Images/Research.png" />
+            </dxlc:Tile>
+            <dxlc:Tile Header="Statistics" Name="tile3" Size="Small" Background="#FF5CA332">
+                <Image Name="image3" Stretch="None" Source="Images/Statistics.png" />
+            </dxlc:Tile>
+            <dxlc:Tile Header="Manage Shipments" Name="tile4" Size="Large" dxlc:FlowLayoutControl.IsFlowBreak="True"
+                       HorizontalHeaderAlignment="Center" Command="{Binding LaunchShipments}">
+                <TextBlock FontSize="60" VerticalAlignment="Center" HorizontalAlignment="Center">Shipments</TextBlock>
+            </dxlc:Tile>
+            <dxlc:Tile Name="tile5" Size="Large"
+                       HorizontalHeaderAlignment="Center" Background="#FF666666"
+                       ContentSource="{Binding Agents}" ContentChangeInterval="00:00:03" AnimateContentChange="True">
+                <dxlc:Tile.ContentTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <TextBlock Text="{Binding AgentName}" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                            <Image Source="{Binding PhotoSource}" Stretch="None" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                        </Grid>
+                    </DataTemplate>
+                </dxlc:Tile.ContentTemplate>
+            </dxlc:Tile>
+        </dxlc:TileLayoutControl>
+
+
+    </Grid>
+
+</dx:DXWindow>
