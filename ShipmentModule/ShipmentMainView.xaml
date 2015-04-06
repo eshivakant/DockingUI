@@ -6,6 +6,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <TextBlock>Shipment Main View</TextBlock>
+        <StackPanel>
+            <TextBlock>Shipment Main View</TextBlock>
+            <Button Content="I will be enabled If I know Deal is loaded. Press me to say hi to deal." IsEnabled="{Binding DealActivated}"></Button>
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -31,7 +31,7 @@ namespace DXLauncher
 
     public class MainVM:INotifyPropertyChanged
     {
-        private const string Path = @"C:\Prism\Quickstarts\UIComposition_Desktop\UIComposition_Desktop\bin\Debug\UIComposition.Shell.exe";
+        private const string Path = @"UIComposition.Shell.exe";
 
         private ICommand _launchDeals;
 

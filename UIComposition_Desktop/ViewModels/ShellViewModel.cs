@@ -1,8 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using DevExpress.Xpf.Docking;
@@ -10,11 +14,15 @@ using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using UIComposition.Shell.Merges;
 
+
 namespace UIComposition.Shell.ViewModels
 {
     public class ShellViewModel : INotifyPropertyChanged
     {
         private readonly IUnityContainer _unityContainer;
+
+        private bool _dealActivated;
+
 
         public ShellViewModel(IUnityContainer unityContainer)
         {
@@ -23,7 +31,10 @@ namespace UIComposition.Shell.ViewModels
             this.ExitCommand = new DelegateCommand<object>(this.AppExit, this.CanAppExit);
 
             GlobalVars.LoadedModules.ForEach(AddDocument);
+
+           
         }
+
 
 
         #region ExitCommand
@@ -110,6 +121,12 @@ namespace UIComposition.Shell.ViewModels
             }
         }
 
+        public bool DealActivated
+        {
+            get { return _dealActivated; }
+            set { _dealActivated = value; NotifyPropertyChanged("DealActivated"); }
+        }
+
         void AddDocument()
         {
            
@@ -124,6 +141,8 @@ namespace UIComposition.Shell.ViewModels
             this.Workspaces.Add(factory.GetDocumentViewModel(name));
         }
     }
+
+   
 
     public class PanelViewModel : DependencyObject
     {
