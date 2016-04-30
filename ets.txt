@@ -1,0 +1,493 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Xml;
+using Microsoft.ServiceBus;
+using Microsoft.ServiceBus.Messaging;
+
+namespace Bluebay.ServiceBus.Client
+{
+    /// <summary>
+    /// //in the constructor configure serialization mechanism and content type. 
+    /// </summary>
+    public interface IBus
+    {
+        //fire and forget to a queue. Will create a queue with default config if it doesn't exist. Will use content type to serialize the message accordingly
+        void SendToQueue<T>(T message, string queue);
+
+        //fire and forget to a topic.Will create a topic with default config if it doesn't exist. Will use content type to serialize the message accordingly
+        void PublichToTopic<T>(T message, string topic);
+
+        //subscribe to named queue - sequential receive and delete for non-critical messages. Messages will be lost if client fails to process. Will use content type to deserialize the message accordingly
+        void SubscribeToQueueUsingSequentialMessagePump<T>(string queueName, Action<T> subscription);
+
+        //receive from a named queue - contrained concurrency  receive and delete. Messages will be lost if client fails to processWill use content type to deserialize the message accordingly
+        void SubscribeToQueue<T>(string queueName, Action<T> subscription, int concurrentThreads = 1);
+
+        //receive from a named queue - sequential peek lock fail proof for critical messages. Messages will be returned to queue if client fails to process. It will be processed again for n number of times and will be dead lettered after that. Will use content type to deserialize the message accordingly
+        void SubscribeToQueueUsingPeekLock<T>(string queueName, Action<T> subscription);
+
+        //receive from a named queue - contrained concurrency peek lock fail proof for critical messages. Messages will be returned to queue if client fails to process. It will be processed again for n number of times and will be dead lettered after that .Will use content type to deserialize the message accordingly
+        void SubscribeToQueueUsingPeekLock<T>(string queueName, Action<T> subscription, int concurrentThreads);
+
+        //subscribe to a topic without filter. Will use content type to deserialize the message accordingly
+        void SubscribeToTopic<T>(string topic, Action<T> subscription);
+
+        //subscribe to a topic with simple string filter. Will use content type to deserialize the message accordingly
+        void SubscribeToTopic<T>(string topic, Action<T> subscription, string filterToken);
+
+        //subscribe to a topic with complex key-value filter. Will use content type to deserialize the message accordingly
+        void SubscribeToTopic<T>(string topic, Action<T> subscription, List<KeyValuePair<string,string>> filters);
+
+        //request response using service bus. Will use content type to deserialize the message accordingly
+        TRes Request<TReq, TRes>(TReq request, string requestQueue, string responseQueue) where TRes : new();
+        //request response using service bus. Will use content type to deserialize the message accordingly
+        TRes RequestUsingKnownQueue<TReq, TRes>(TReq request, string requestQueue, string responseQueue) where TRes : new();
+
+    }
+
+    public class Bus : IBus
+    {
+        private readonly MessageContentType _contentType;
+
+        public Bus()
+        {
+            _contentType = MessageContentType.Binary;
+        }
+
+        public Bus(MessageContentType contentType)
+        {
+            _contentType = contentType;
+        }
+
+        public void SendToQueue<T>(T message, string queue)
+        {
+            MessagingFactory factory = MessagingFactory.CreateFromConnectionString(Settings.ConnectionString);
+
+            // Create a message using text as the body.
+            BrokeredMessage msg = Serialize(message);
+            QueueFactory.CreateQueue(queue);
+
+            // Create Request and Response Queue Clients
+            QueueClient requestQueueClient = factory.CreateQueueClient(queue);
+
+            //send and close
+            requestQueueClient.Send(msg);
+            factory.Close();
+        }
+
+        public void PublichToTopic<T>(T message, string topic)
+        {
+            TopicClient client = TopicClient.CreateFromConnectionString(Settings.ConnectionString, topic);
+            BrokeredMessage msg = Serialize(message);
+            client.Send(msg);
+            client.Close();
+        }
+
+        public void SubscribeToQueueUsingSequentialMessagePump<T>(string queueName, Action<T> subscription)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToQueue<T>(string queueName, Action<T> subscription, int concurrentThreads = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToQueueUsingPeekLock<T>(string queueName, Action<T> subscription)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToQueueUsingPeekLock<T>(string queueName, Action<T> subscription, int concurrentThreads = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToTopic<T>(string topic, Action<T> subscription)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToTopic<T>(string topic, Action<T> subscription, string filterToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToTopic<T>(string topic, Action<T> subscription, List<KeyValuePair<string, string>> filters)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// Use this method when you want queues to be implicitly created, else use the other overload
+        /// </summary>
+        /// <typeparam name="TReq"></typeparam>
+        /// <typeparam name="TRes"></typeparam>
+        /// <param name="request"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="methodName"></param>
+        /// <returns></returns>
+        public TRes Request<TReq, TRes>(TReq request, string serviceName, string methodName) where  TRes:new()
+        {
+            var requestQueue = serviceName.Replace(".","-")+"-Request";
+            var responseQueue = serviceName.Replace(".", "-") + "-Response";
+            return RequestUsingKnownQueue<TReq, TRes>(request, requestQueue, responseQueue);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TReq"></typeparam>
+        /// <typeparam name="TRes"></typeparam>
+        /// <param name="request"></param>
+        /// <param name="requestQueue"></param>
+        /// <param name="responseQueue"></param>
+        /// <returns></returns>
+        public TRes RequestUsingKnownQueue<TReq, TRes>(TReq request, string requestQueue, string responseQueue) where TRes : new()
+        {
+            MessagingFactory factory = MessagingFactory.CreateFromConnectionString(Settings.ConnectionString);
+
+
+            //will create queue only if it doesn't exist
+            QueueFactory.CreateQueue(requestQueue);
+            QueueFactory.CreateQueue(responseQueue);
+
+            // Create Request and Response Queue Clients
+            QueueClient requestQueueClient = factory.CreateQueueClient(requestQueue);
+            QueueClient responseQueueClient = factory.CreateQueueClient(responseQueue);
+
+
+            // Create a session identifyer for the response message
+            string responseSessionId = Guid.NewGuid().ToString();
+
+            // Create a message using text as the body.
+            BrokeredMessage requestMessage = Serialize(request);
+
+            // Set the appropriate message properties.
+            requestMessage.ReplyToSessionId = responseSessionId;
+
+            // Send the message on the request queue.
+            requestQueueClient.Send(requestMessage);
+
+            // Accept a message session.
+            MessageSession responseSession =
+                responseQueueClient.AcceptMessageSession(responseSessionId);
+
+            // Receive the response message.
+            BrokeredMessage responseMessage =
+                responseSession.Receive(TimeSpan.FromSeconds(Settings.RequestResponseTimeout));
+
+            // Close the session, we got the message.
+            responseSession.Close();
+
+            // Deserialise the message body to echoText.
+            return DeserializeKnownType<TRes>(responseMessage);
+        }
+
+        /// <summary>
+        /// will serialize message to the content type of the bus and set the type in property dictionary
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public BrokeredMessage Serialize<T>(T message)
+        {
+            switch (_contentType)
+            {
+                case MessageContentType.Json:
+                case MessageContentType.String:
+                    var msg = new BrokeredMessage(message.ToJson()) { ContentType = _contentType.ToString() };
+                    msg.ContentType = _contentType.ToString();
+                    msg.Properties["type"] = typeof(T).AssemblyQualifiedName;
+                    return msg;
+                case MessageContentType.Xml:
+                    msg = new BrokeredMessage(message.ToXml()) { ContentType = _contentType.ToString() };
+                    msg.ContentType = _contentType.ToString();
+                    msg.Properties["type"] = typeof(T).AssemblyQualifiedName;
+                    return msg;
+                case MessageContentType.Binary:
+                default:
+                    msg = new BrokeredMessage(message) { ContentType = _contentType.ToString() };
+                    msg.ContentType = _contentType.ToString();
+                    msg.Properties["type"] = typeof(T).AssemblyQualifiedName;
+                    return msg;
+            }
+        }
+
+        /// <summary>
+        /// Should be used if we are sure that all messages recieved will be of a known type
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="brokeredMessage"></param>
+        /// <returns></returns>
+        public T DeserializeKnownType<T>(BrokeredMessage brokeredMessage) where T : new()
+        {
+
+            switch (_contentType)
+            {
+                case MessageContentType.Json:
+                case MessageContentType.String:
+                    var body = brokeredMessage.GetBody<string>();
+                    return body.DeserializeJson<T>();
+                case MessageContentType.Xml:
+                    body = brokeredMessage.GetBody<string>();
+                    return body.DeserializeFromXml<T>();
+                case MessageContentType.Binary:
+                default:
+                    return brokeredMessage.GetBody<T>();
+
+            }
+        }
+
+        /// <summary>
+        /// Use this when we want to deserialize a known type but queue can have other types.
+        /// This will return null if types don't match
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="brokeredMessage"></param>
+        /// <returns></returns>
+        public T SafelyDeserializeKnownType<T>(BrokeredMessage brokeredMessage) where T : new()
+        {
+
+            switch (_contentType)
+            {
+                case MessageContentType.Json:
+                case MessageContentType.String:
+                    var body = brokeredMessage.GetBody<string>();
+                    var type = Type.GetType(brokeredMessage.Properties["type"].ToString(), true, true);
+                    if (!type.IsAssignableFrom(typeof(T)))
+                        return default(T);
+
+                    return body.DeserializeJson<T>();
+                case MessageContentType.Xml:
+                    body = brokeredMessage.GetBody<string>();
+                    type = Type.GetType(brokeredMessage.Properties["type"].ToString(), true, true);
+                    if (!type.IsAssignableFrom(typeof(T)))
+                        return default(T);
+
+                    return body.DeserializeFromXml<T>();
+                case MessageContentType.Binary:
+                default:
+                    return brokeredMessage.GetBody<T>();
+
+            }
+        }
+
+        /// <summary>
+        /// Use this when we want to deserialize any type. E.g. wire tap scenarios for monitoring etc.
+        /// </summary>
+        /// <param name="brokeredMessage"></param>
+        /// <returns></returns>
+        public object DeSerializeAnyType(BrokeredMessage brokeredMessage)
+        {
+
+            switch (_contentType)
+            {
+                case MessageContentType.Json:
+                case MessageContentType.String:
+                    var body = brokeredMessage.GetBody<string>();
+                    var type = Type.GetType(brokeredMessage.Properties["type"].ToString(), true, true);
+                    return body.DeserializeJson(type);
+                case MessageContentType.Xml:
+                    return new BrokeredMessage(brokeredMessage.ToXml()) { ContentType = _contentType.ToString() };
+                case MessageContentType.Binary:
+                default:
+                    type = Type.GetType(brokeredMessage.Properties["type"].ToString(), true, true);
+                    var stream = brokeredMessage.GetBody<Stream>();
+                    DataContractSerializer serializer = new DataContractSerializer(type);
+                    XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(stream, XmlDictionaryReaderQuotas.Max);
+                    object deserializedBody = serializer.ReadObject(reader);
+                    return deserializedBody;
+            }
+        }
+
+
+    }
+
+
+    public enum MessageContentType
+    {
+        Binary,
+        Json,
+        Xml,
+        String
+    }
+
+    public static class QueueFactory
+    {
+        static NamespaceManager _manager = NamespaceManager.CreateFromConnectionString(Settings.ConnectionString);
+
+
+        /// <summary>
+        /// Queue that will autodelete itself after 1 min idle time
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <returns>QueueClient</returns>
+        public static void CreateTemporaryQueue(string queueName)
+        {
+            var desc = new QueueDescription(queueName) {AutoDeleteOnIdle = TimeSpan.FromMinutes(1)};
+            CreateQueue(desc);
+        }
+
+        /// <summary>
+        /// will create queue if it doesn't exist
+        /// </summary>
+        /// <param name="queueName"></param>
+        public static void CreateQueue(string queueName)
+        {
+            if (!_manager.QueueExists(queueName))
+            {
+                Debug.Write("Creating queue: " + queueName + "...");
+                _manager.CreateQueue(queueName);
+                Debug.Write("Created queue: " + queueName + "...");
+            }
+        }
+
+        /// <summary>
+        /// /// will create queue if it doesn't exist
+        /// </summary>
+        /// <param name="desc"></param>
+        public static void CreateQueue(QueueDescription desc)
+        {
+            var manager = NamespaceManager.CreateFromConnectionString(Settings.ConnectionString);
+            if (!manager.QueueExists(desc.Path))
+            {
+                Debug.Write("Creating queue: " + desc.Path + "...");
+                manager.CreateQueue(desc);
+                Debug.Write("Created queue: " + desc.Path + "...");
+            }
+        }
+
+    }
+
+
+    internal class SubscriptionFactory
+    {
+        /// <summary>
+        /// Topic that will autodelete itself after 1 min idle time
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <returns>TopicDescription</returns>
+        public TopicDescription CreateTemporarySubscriptionConfig(string topic)
+        {
+            var desc = new TopicDescription(topic);
+            desc.AutoDeleteOnIdle = TimeSpan.FromMinutes(1);
+            return desc;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+using System;
+using System.IO;
+using System.Text;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
+
+namespace Bluebay.ServiceBus.Client
+{
+    public static class Serializers
+    {
+        public static string ToJson<T>(this T value)
+        {
+            var sb = new StringBuilder();
+            var sw = new StringWriter(sb);
+            var jsonWriter = new JsonTextWriter(sw);
+            JsonSerializer jsonSerializer = new JsonSerializer{
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            jsonSerializer.Serialize(jsonWriter, value);
+            return sb.ToString();
+        }
+
+        public static string ToXml<T>(this T value)
+        {
+            var serializer = new XmlSerializer(typeof(T));
+
+
+            using (StringWriter textWriter = new StringWriter())
+            {
+                serializer.Serialize(textWriter, value);
+                return textWriter.ToString();
+            }
+        }
+
+        public static T DeserializeJson<T>(this string json) where T : new()
+        {
+            if (string.IsNullOrWhiteSpace(json) || !json.Trim().StartsWith("{")) return new T();
+
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(json);
+            }
+            catch
+            {
+                return new T();
+            }
+        }
+
+        public static object DeserializeJson(this string json, Type type)
+        {
+            if (string.IsNullOrWhiteSpace(json) || !json.Trim().StartsWith("{")) return null;
+
+            try
+            {
+                return JsonConvert.DeserializeObject(json, type);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static T DeserializeFromXml<T>(this string xml) where T : new()
+        {
+            if (string.IsNullOrWhiteSpace(xml))
+                return new T();
+
+            T value = default(T);
+            try
+            {
+                var serializer = new XmlSerializer(typeof(T));
+                using (var reader = new StringReader(xml))
+                {
+                    value = (T)serializer.Deserialize(reader);
+                }
+            }
+            catch (Exception)
+            {
+                return new T();
+            }
+            return value;
+        }
+
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Bluebay.ServiceBus.Client
+{
+    public class Settings
+    {
+        public static string ConnectionString = "";
+        public static int RequestResponseTimeout = 30;
+    }
+}
